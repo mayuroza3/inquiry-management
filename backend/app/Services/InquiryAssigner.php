@@ -30,6 +30,7 @@ class InquiryAssigner
     {
         return User::query()
             ->where('role', $role)
+            ->where('is_approved', true)
             ->withCount([
                 'assignedInquiries as open_inquiries_count' => function ($query): void {
                     $query->whereIn('status', ['new', 'contacted', 'pending', 'qualified']);

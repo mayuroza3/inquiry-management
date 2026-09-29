@@ -7,6 +7,15 @@ use App\Models\User;
 
 class InquiryPolicy
 {
+    public function before(User $user, string $ability): ?bool
+    {
+        if (! $user->isApproved()) {
+            return false;
+        }
+
+        return null;
+    }
+
     public function viewAny(User $user): bool
     {
         return true;

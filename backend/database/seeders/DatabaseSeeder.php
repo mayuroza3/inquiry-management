@@ -7,6 +7,7 @@ use App\Models\LeadSource;
 use App\Models\Note;
 use App\Models\Reminder;
 use App\Models\User;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder

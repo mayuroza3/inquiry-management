@@ -29,6 +29,7 @@ class UserController extends Controller
         $this->authorize('create', User::class);
 
         $data = $this->validated($request);
+        $data['is_approved'] = $data['is_approved'] ?? true;
 
         $user = User::query()->create($data);
         $user->load('manager');
@@ -38,7 +39,7 @@ class UserController extends Controller
             null,
             'user.created',
             'Created user '.$user->name.'.',
-            ['user_id' => $user->id, 'role' => $user->role]
+            ['user_id' => $user->id, 'role' => $user->role, 'is_approved' => $user->is_approved]
         );
 
         return (new UserResource($user))
@@ -52,7 +53,7 @@ class UserController extends Controller
 
         $data = $this->validated($request, $user);
 
-        $before = $user->only(['name', 'email', 'role', 'manager_id']);
+        $before = $user->only(['name', 'email', 'role', 'is_approved', 'manager_id']);
         $passwordChanging = array_key_exists('password', $data) && $data['password'] !== null && $data['password'] !== '';
 
         if (! $passwordChanging) {
@@ -119,6 +120,7 @@ class UserController extends Controller
             ],
             'password' => InputRules::password($user === null),
             'role' => [$user ? 'sometimes' : 'required', Rule::in(User::ROLES)],
+            'is_approved' => ['sometimes', 'boolean'],
             'manager_id' => [
                 'nullable',
                 'integer',

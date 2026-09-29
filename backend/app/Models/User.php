@@ -36,6 +36,7 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'role',
+        'is_approved',
         'manager_id',
     ];
 
@@ -55,6 +56,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_approved' => 'boolean',
         ];
     }
 
@@ -96,6 +98,11 @@ class User extends Authenticatable implements JWTSubject
     public function isSalesManager(): bool
     {
         return $this->role === self::ROLE_SALES_MANAGER;
+    }
+
+    public function isApproved(): bool
+    {
+        return (bool) $this->is_approved;
     }
 
     public function canExport(): bool

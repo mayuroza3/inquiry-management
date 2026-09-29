@@ -18,6 +18,7 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
+            'is_approved' => (bool) $this->is_approved,
             'manager_id' => $this->manager_id,
             'manager' => $this->whenLoaded('manager', fn () => [
                 'id' => $this->manager?->id,

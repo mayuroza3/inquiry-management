@@ -1,4 +1,6 @@
 import AddIcon from '@mui/icons-material/Add';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import BlockIcon from '@mui/icons-material/Block';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
@@ -22,6 +24,7 @@ const emptyForm = {
   email: '',
   password: '',
   role: 'sales' as Role,
+  is_approved: true,
   manager_id: '',
 };
 
@@ -55,9 +58,21 @@ export function UsersPage() {
       email: user.email,
       password: '',
       role: user.role,
+      is_approved: user.is_approved,
       manager_id: user.manager_id ? String(user.manager_id) : '',
     });
     setOpen(true);
+  }
+
+  async function toggleApproval(user: User) {
+    try {
+      await api.patch(withAccess(`/api/users/${user.id}`, user.access), {
+        is_approved: !user.is_approved,
+      });
+      await load();
+    } catch {
+      setError('Could not update user approval status.');
+    }
   }
 
   async function save() {
@@ -80,6 +95,7 @@ export function UsersPage() {
       name: form.name.trim(),
       email: form.email.trim(),
       role: form.role,
+      is_approved: form.is_approved,
       manager_id: form.manager_id ? Number(form.manager_id) : null,
       ...(form.password ? { password: form.password } : {}),
     };
@@ -107,8 +123,8 @@ export function UsersPage() {
   return (
     <Stack spacing={2.5}>
       <PageHeader
-        title="Team"
-        subtitle="Admins, managers, and sales people who can own an inquiry."
+        title="Team & Approvals"
+        subtitle="Admins, managers, and sales representatives who can access the portal."
         actions={<Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>Add member</Button>}
       />
       {error && <Alert>{error}</Alert>}
@@ -118,8 +134,9 @@ export function UsersPage() {
             <TableCell>Name</TableCell>
             <TableCell>Email</TableCell>
             <TableCell>Role</TableCell>
+            <TableCell>Approval Status</TableCell>
             <TableCell>Manager</TableCell>
-            <TableCell />
+            <TableCell align="right">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -137,11 +154,33 @@ export function UsersPage() {
                   {ROLE_LABELS[user.role]}
                 </Box>
               </TableCell>
+              <TableCell>
+                {user.is_approved ? (
+                  <Box component="span" sx={{ px: 1.1, py: 0.35, borderRadius: 999, bgcolor: '#ecfdf5', color: '#059669', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                    <CheckCircleOutlineIcon sx={{ fontSize: 14 }} /> Approved
+                  </Box>
+                ) : (
+                  <Box component="span" sx={{ px: 1.1, py: 0.35, borderRadius: 999, bgcolor: '#fffbe6', color: '#d97706', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                    <BlockIcon sx={{ fontSize: 14 }} /> Pending Approval
+                  </Box>
+                )}
+              </TableCell>
               <TableCell>{user.manager?.name || '—'}</TableCell>
               <TableCell align="right">
-                <Button onClick={() => openEdit(user)}>Edit</Button>
                 {current?.id !== user.id && (
                   <Button
+                    size="small"
+                    color={user.is_approved ? 'warning' : 'success'}
+                    onClick={() => toggleApproval(user)}
+                    sx={{ mr: 1, fontWeight: 600 }}
+                  >
+                    {user.is_approved ? 'Revoke' : 'Approve'}
+                  </Button>
+                )}
+                <Button size="small" onClick={() => openEdit(user)}>Edit</Button>
+                {current?.id !== user.id && (
+                  <Button
+                    size="small"
                     color="error"
                     onClick={async () => {
                       await api.delete(withAccess(`/api/users/${user.id}`, user.access));
@@ -171,6 +210,15 @@ export function UsersPage() {
           value={form.role}
           options={(Object.keys(ROLE_LABELS) as Role[]).map((role) => ({ value: role, label: ROLE_LABELS[role] }))}
           onChange={(event) => setForm({ ...form, role: event.target.value as Role })}
+        />
+        <Select
+          label="Approval Status"
+          value={String(form.is_approved)}
+          options={[
+            { value: 'true', label: 'Approved' },
+            { value: 'false', label: 'Pending Approval' },
+          ]}
+          onChange={(event) => setForm({ ...form, is_approved: event.target.value === 'true' })}
         />
         <Select
           label="Manager"

@@ -386,4 +386,79 @@ class InquiryApiTest extends TestCase
         $this->assertSame(['Mona', 'Zara', 'Adam'], $names('?sort=received&direction=asc'));
         $this->assertSame(['Adam', 'Zara', 'Mona'], $names('?sort=id&direction=asc'));
     }
+
+    public function test_self_registration_creates_unapproved_account_that_cannot_view_inquiries_until_approved(): void
+    {
+        $response = $this->postJson('/api/register', [
+            'name' => 'John Doe',
+            'email' => 'john@example.com',
+            'password' => 'SecurePass123!',
+            'password_confirmation' => 'SecurePass123!',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('user.name', 'John Doe')
+            ->assertJsonPath('user.is_approved', false);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'john@example.com',
+            'is_approved' => false,
+        ]);
+
+        $unapprovedUser = User::where('email', 'john@example.com')->first();
+        $token = auth('api')->login($unapprovedUser);
+
+        // Can log in and view dashboard/profile, but inquiries endpoint is forbidden
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/me')
+            ->assertOk();
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/inquiries')
+            ->assertForbidden()
+            ->assertJsonPath('is_approved', false);
+
+        // Admin approves user
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $adminToken = auth('api')->login($admin);
+        $signedUser = fn ($u) => $this->signedPath('/api/users/'.$u->id, $admin, 'user', $u->id);
+
+        $this->withHeader('Authorization', 'Bearer '.$adminToken)
+            ->patchJson($signedUser($unapprovedUser), ['is_approved' => true])
+            ->assertOk();
+
+        // Now approved user can list inquiries
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/inquiries')
+            ->assertOk();
+    }
+
+    public function test_forgot_and_reset_password_flow(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'resetme@example.com',
+            'password' => Hash::make('OldPassword1!'),
+        ]);
+
+        $forgotRes = $this->postJson('/api/forgot-password', [
+            'email' => 'resetme@example.com',
+        ]);
+
+        $forgotRes->assertOk();
+        $resetUrl = $forgotRes->json('reset_url');
+        $this->assertNotNull($resetUrl);
+
+        parse_str(parse_url($resetUrl, PHP_URL_QUERY), $query);
+        $token = $query['token'];
+
+        $this->postJson('/api/reset-password', [
+            'email' => 'resetme@example.com',
+            'token' => $token,
+            'password' => 'NewPassword99!',
+            'password_confirmation' => 'NewPassword99!',
+        ])->assertOk();
+
+        $this->assertTrue(Hash::check('NewPassword99!', $user->fresh()->password));
+    }
 }
+

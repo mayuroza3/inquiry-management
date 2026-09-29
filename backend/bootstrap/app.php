@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureRole::class,
             'signed.access' => \App\Http\Middleware\EnsureSignedAccess::class,
+            'approved' => \App\Http\Middleware\EnsureApprovedUser::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

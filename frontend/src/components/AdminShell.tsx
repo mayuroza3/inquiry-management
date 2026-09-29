@@ -233,6 +233,26 @@ export function AdminShell() {
             </Box>
           </Box>
           <Box component="main" sx={{ flexGrow: 1, px: { xs: 2, md: 3 }, pb: 3, minWidth: 0 }}>
+            {user && !user.is_approved && (
+              <Box sx={{ mb: 2.5, mt: 1 }}>
+                <Box
+                  sx={{
+                    p: 2,
+                    borderRadius: 2,
+                    bgcolor: '#fffbe6',
+                    border: '1px solid #ffe58f',
+                    color: '#8c6b00',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    Account Pending Administrator Approval: You can view summary metrics, but access to full lead details and inquiry records requires approval from an Admin.
+                  </Typography>
+                </Box>
+              </Box>
+            )}
             <Outlet />
           </Box>
         </Box>

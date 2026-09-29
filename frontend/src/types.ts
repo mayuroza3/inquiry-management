@@ -7,6 +7,7 @@ export interface User {
   name: string;
   email: string;
   role: Role;
+  is_approved: boolean;
   manager_id: number | null;
   manager?: { id: number; name: string } | null;
   created_at?: string;

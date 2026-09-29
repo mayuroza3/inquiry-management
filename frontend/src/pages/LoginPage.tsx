@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link as RouterLink, Navigate } from 'react-router-dom';
+import { Link as RouterLink, Navigate, useLocation } from 'react-router-dom';
 import * as yup from 'yup';
 import { useAuth } from '../auth/AuthContext';
 import { Alert } from '../components/Alert';
@@ -22,6 +22,9 @@ type FormValues = yup.InferType<typeof schema>;
 
 export function LoginPage() {
   const { user, loading, login } = useAuth();
+  const location = useLocation();
+  const stateMessage = (location.state as any)?.successMessage || (location.state as any)?.infoMessage;
+
   const [error, setError] = useState('');
   const { register, handleSubmit, formState } = useForm<FormValues>({ resolver: yupResolver(schema) });
 
@@ -67,6 +70,13 @@ export function LoginPage() {
           <Box component="img" src="/savit-logo.svg" alt="Savit" sx={{ height: 44, width: 'auto', mb: 3 }} />
           <Typography variant="h4">Sign in</Typography>
           <Typography color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>Use your portal account to review inquiries.</Typography>
+          
+          {stateMessage && (
+            <Alert sx={{ mb: 2 }}>
+              {stateMessage}
+            </Alert>
+          )}
+
           <Card>
             {error && <Alert>{error}</Alert>}
             <form
@@ -81,14 +91,30 @@ export function LoginPage() {
             >
               <FormInput label="Email" type="email" errorText={formState.errors.email?.message} {...register('email')} />
               <FormInput label="Password" type="password" errorText={formState.errors.password?.message} {...register('password')} />
-              <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }} disabled={formState.isSubmitting}>
+              
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, mb: 2 }}>
+                <Link component={RouterLink} to="/forgot-password" variant="body2" underline="hover">
+                  Forgot password?
+                </Link>
+              </Box>
+
+              <Button type="submit" variant="contained" fullWidth disabled={formState.isSubmitting}>
                 Sign in
               </Button>
             </form>
           </Card>
-          <Link component={RouterLink} to="/inquire" sx={{ mt: 2, fontWeight: 600 }}>
-            Submit an inquiry without an account
-          </Link>
+
+          <Stack spacing={1} sx={{ mt: 3 }}>
+            <Typography variant="body2" color="text.secondary">
+              Don't have an account?{' '}
+              <Link component={RouterLink} to="/register" fontWeight={600} underline="hover">
+                Create an account
+              </Link>
+            </Typography>
+            <Link component={RouterLink} to="/inquire" sx={{ fontWeight: 600 }}>
+              Submit an inquiry without an account
+            </Link>
+          </Stack>
         </Stack>
       </Box>
     </Box>

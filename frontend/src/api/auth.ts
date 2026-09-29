@@ -6,6 +6,32 @@ export async function login(email: string, password: string): Promise<User> {
   return data.user;
 }
 
+export async function register(payload: {
+  name: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+  role?: string;
+}): Promise<{ user: User; message: string }> {
+  const { data } = await api.post<{ user: User; message: string }>('/api/register', payload);
+  return data;
+}
+
+export async function forgotPassword(email: string): Promise<{ message: string; reset_url?: string | null }> {
+  const { data } = await api.post<{ message: string; reset_url?: string | null }>('/api/forgot-password', { email });
+  return data;
+}
+
+export async function resetPassword(payload: {
+  email: string;
+  token: string;
+  password: string;
+  password_confirmation: string;
+}): Promise<{ message: string }> {
+  const { data } = await api.post<{ message: string }>('/api/reset-password', payload);
+  return data;
+}
+
 export async function logout(): Promise<void> {
   await api.post('/api/logout');
 }
