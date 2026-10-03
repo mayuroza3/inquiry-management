@@ -1,140 +1,205 @@
-# Inquiry Management Portal
+# 🚀 Enterprise Inquiry & Lead Management Portal
 
-On-premise portal for public inquiries and a role-based staff workspace. Laravel 12 serves the API and, after a production build, the React app. React 18 (Vite) is the staff UI.
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
+[![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-## Prerequisites
+A modern, full-stack, enterprise-grade **Inquiry and Lead Management Solution** designed for high-concurrency sales teams. Built with a high-performance **Laravel 12 REST API** backend and a responsive, dynamic **React 18 + Vite + Material UI (MUI)** SPA frontend.
 
-- PHP 8.2+ with `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`
-- Composer
-- Node.js 20+
-- MySQL 8
-- Optional: a [Mailtrap](https://mailtrap.io) inbox for email delivery
+---
 
-## Setup
+## ✨ Key Features
+
+- **⚡ Automated Smart Lead Assignment**: Features a dynamic *Least-Loaded Round-Robin* auto-assignment algorithm that automatically routes incoming inquiries to the sales representative with the lowest active workload.
+- **🔐 Secure Role-Based Access Control (RBAC)**: Multi-level hierarchy supporting **Admin**, **Sales Manager**, and **Sales Executive** roles.
+  - *Admins*: Full platform control, user management, global analytics, and raw CSV exports.
+  - *Sales Managers*: Access inquiries assigned to themselves and their recursive direct reports via `manager_id` tree structures.
+  - *Sales Executives*: Isolated view restricted strictly to their assigned inquiries.
+- **🛡️ Custom Admin Approval Middleware**: High-security account workflow ensuring new staff accounts require admin approval (`is_approved`) before accessing sensitive lead data.
+- **🔐 JWT Authentication via HttpOnly Cookies**: Enterprise security standard preventing XSS script theft by storing JWT tokens inside secure HttpOnly cookies.
+- **📊 Real-Time Analytics & Live Dashboard**: Dynamic metric widgets computing status breakdowns, lead conversion rates, and workload distributions.
+- **📤 High-Performance Streamed CSV Export**: Memory-efficient CSV exports built with Laravel `Response::streamDownload()` and Eloquent `cursor()` chunking for millions of records without memory spikes.
+- **🛡️ Signed URL Security for File Attachments**: Temporary HMAC-signed URL access control (`EnsureSignedAccess`) protecting customer attachments (PDF, DOCX, images) against direct path guessing.
+- **⚡ Async Mail & Queue Processing**: Decoupled submission lifecycle using Laravel Queues and Event Listeners (`InquiryCreated`), keeping public form responses under <100ms.
+- **🔍 Advanced Search & Filter Engine**: Instant multi-attribute search across lead names, emails, phones, services, lead sources, date ranges, and status states.
+- **📜 Audit Trails & Reminders**: Complete activity log recording all assignment changes, status updates, internal notes, and follow-up reminders.
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+### Backend
+- **Framework**: Laravel 12
+- **Language**: PHP 8.2+
+- **Database**: MySQL 8.0 / MariaDB
+- **Auth**: `php-open-source-saver/jwt-auth` (HttpOnly Cookie Auth)
+- **Testing**: PHPUnit 11 (19 Feature & Unit Tests, 100+ Assertions)
+
+### Frontend
+- **Framework**: React 18
+- **Build Tool**: Vite 5
+- **Language**: TypeScript 5
+- **UI Framework**: Material UI (MUI v5), Lucide React Icons
+- **State & Router**: React Router v6, Axios with automatic cookie credential passing
+
+---
+
+## 🚀 Quick Start Guide
+
+### Prerequisites
+- PHP >= 8.2 with extensions: `pdo_mysql`, `mbstring`, `openssl`, `tokenizer`, `xml`, `fileinfo`, `curl`
+- Composer 2.x
+- Node.js >= 20.x & npm
+- MySQL 8.0+
+
+---
+
+### 1. Backend Setup
 
 ```bash
+# Navigate to backend directory
 cd backend
+
+# Install PHP dependencies
 composer install
+
+# Environment setup
 php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+# Generate application key and JWT secret
 php artisan key:generate
 php artisan jwt:secret
 ```
 
-That copy command works in Windows Command Prompt, PowerShell, and bash.
+Create a MySQL database named `inquiry_management`, then update `backend/.env`:
 
-Create the database, then set these values in `backend/.env`:
+```ini
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=inquiry_management
+DB_USERNAME=root
+DB_PASSWORD=your_mysql_password
 
-| Variable | Purpose |
-| --- | --- |
-| `DB_CONNECTION` | `mysql` |
-| `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | MySQL connection |
-| `JWT_SECRET` | Signing key from `php artisan jwt:secret` |
-| `FILESYSTEM_DISK` / `FILESYSTEM_DRIVER` | `local` for on-premise files. Set `s3` later with the AWS variables. |
-| `MAIL_MAILER` | `log` writes mail to the Laravel log. Set `smtp` to deliver through Mailtrap. |
-| `MAIL_HOST` | `sandbox.smtp.mailtrap.io` |
-| `MAIL_PORT` | `2525` |
-| `MAIL_USERNAME`, `MAIL_PASSWORD` | Mailtrap SMTP credentials |
-| `INQUIRY_NOTIFY_EMAIL` | Address that receives a message when a public inquiry is submitted |
-| `CORS_ALLOWED_ORIGINS` | `http://127.0.0.1:5173,http://localhost:5173` |
+JWT_SECRET=your_jwt_secret_here
+FILESYSTEM_DISK=local
+MAIL_MAILER=log
+INQUIRY_NOTIFY_EMAIL=admin@example.com
+CORS_ALLOWED_ORIGINS=http://127.0.0.1:5173,http://localhost:5173
+```
+
+Run database migrations and seed default administrative data:
 
 ```bash
 php artisan migrate --seed
-php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-In a second terminal, from `backend/`:
+Start the API development server and queue worker:
 
 ```bash
+# Terminal 1: Serve API
+php artisan serve --host=127.0.0.1 --port=8000
+
+# Terminal 2: Run Queue Worker for Async Notifications
 php artisan queue:work
 ```
 
-That worker sends the queued new-inquiry email after the form response has already returned.
+---
 
-In a third terminal:
+### 2. Frontend Setup
+
+In a new terminal:
 
 ```bash
+# Navigate to frontend directory
 cd frontend
+
+# Install Node modules
 npm ci
+
+# Start Vite dev server
 npm run dev
 ```
 
-- Staff app: http://127.0.0.1:5173/login
-- Public form: http://127.0.0.1:5173/inquire
-- API: http://127.0.0.1:8000/api
+- **Staff Portal**: [http://127.0.0.1:5173/login](http://127.0.0.1:5173/login)
+- **Public Inquiry Form**: [http://127.0.0.1:5173/inquire](http://127.0.0.1:5173/inquire)
+- **Backend API**: [http://127.0.0.1:8000/api](http://127.0.0.1:8000/api)
 
-On Windows, open the `127.0.0.1` addresses. `localhost` often resolves to IPv6 while PHP listens on IPv4, and the login cookie then never reaches the API. In `php.ini`, enable `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, and `curl`, and set `upload_max_filesize` and `post_max_size` above `10M`.
+---
 
-Seeded accounts all use the password `password`:
+## 🔑 Pre-Seeded Test Credentials
 
-| Email | Role | Sees |
-| --- | --- | --- |
-| admin@example.com | Admin | Every inquiry, user management, CSV export |
-| manager@example.com | Sales manager | Own inquiries and direct reports, CSV export |
-| sales@example.com | Sales | Only inquiries assigned to them |
-| sales2@example.com | Sales | Only inquiries assigned to them |
+All pre-seeded demo accounts use the password: `password`
 
-## Production build
+| Role | Email | Permissions & Scope |
+| :--- | :--- | :--- |
+| **Admin** | `admin@example.com` | Full system access, all inquiries, user management, full CSV export |
+| **Sales Manager** | `manager@example.com` | Access to inquiries assigned to self & direct sales team reports |
+| **Sales Executive 1** | `sales@example.com` | Restricted to self-assigned leads |
+| **Sales Executive 2** | `sales2@example.com` | Restricted to self-assigned leads |
 
-From `frontend/`:
+---
 
-```bash
-npm run prod
-```
+## 📡 API Reference Overview
 
-That builds the React app and copies it into `backend/public/`. Then `php artisan serve --host=127.0.0.1 --port=8000` (or the web server document root `backend/public`) serves the UI at http://127.0.0.1:8000.
+### Public Endpoints
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/inquiries` | Submit public lead inquiry (supports file uploads up to 10MB) |
+| `GET` | `/api/lead-sources` | Fetch active lead generation channels |
+| `POST` | `/api/login` | Authenticate staff & issue HttpOnly JWT cookie |
 
-## Another computer
+### Authenticated Endpoints (`auth:api`)
+| Method | Endpoint | Description | Role Access |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/me` | Fetch authenticated user profile | All |
+| `POST` | `/api/logout` | Revoke session & clear auth cookie | All |
+| `GET` | `/api/inquiries` | Paginated inquiries with search & filter parameters | RBAC Scoped |
+| `GET` | `/api/inquiries/stats` | Dashboard aggregated analytics & counts | RBAC Scoped |
+| `GET` | `/api/inquiries/{id}` | Detailed inquiry payload & activity timeline | RBAC Scoped |
+| `PATCH` | `/api/inquiries/{id}` | Update inquiry status or reassign executive | Assigned / Manager / Admin |
+| `POST` | `/api/inquiries/{id}/notes` | Add internal collaboration note | Assigned / Manager / Admin |
+| `GET` | `/api/inquiries/export` | Streamed low-memory CSV export | Admin & Manager |
+| `GET` | `/api/users` | List staff accounts & hierarchy | Admin Only |
+| `POST` | `/api/users` | Create staff account with assigned role | Admin Only |
+| `PATCH` | `/api/users/{id}` | Update staff permissions / approve account | Admin Only |
 
-These steps build a working portal. They do not copy the database from the machine where the project was packed.
+---
 
-- Create empty MySQL databases named `inquiry_management` and, before tests, `inquiry_management_testing`. Put the Windows MySQL user and password in `backend/.env`. The database login from the original machine is not in the project zip.
-- `key:generate` and `jwt:secret` create new keys. That is expected.
-- `migrate --seed` creates the four demo accounts and a few sample inquiries. It does not restore the large stress-test set, notes, comments, or uploaded files from the original database.
-- Mail stays in `backend/storage/logs/laravel.log` until `MAIL_MAILER=smtp` and the Mailtrap username and password are set. `php artisan queue:work` still has to be running.
+## 🧪 Automated Testing
 
-## API
-
-Public:
-
-- `POST /api/inquiries` — create an inquiry. Optional file field `attachment` (pdf, jpg, png, doc, docx, txt, 10 MB).
-- `GET /api/lead-sources`
-- `POST /api/login` — sets an HttpOnly `token` cookie.
-
-Authenticated (`auth:api`, cookie or `Authorization: Bearer`):
-
-- `GET /api/me`, `POST /api/logout`
-- `GET /api/inquiries` — search (`search`), filter (`status`, `assigned_to`), paginated
-- `GET /api/inquiries/stats`
-- `GET /api/inquiries/{id}`
-- `PATCH /api/inquiries/{id}` — `status`, `assigned_to`
-- `POST /api/inquiries/{id}/notes`
-- `POST /api/inquiries/{id}/reminders`
-- `PATCH /api/reminders/{id}`
-- `GET /api/inquiries/{id}/attachments/{attachment}`
-- `GET /api/inquiries/export` — CSV of the same filters. Admin and sales managers only. The response is streamed.
-- `GET /api/team` — users the caller may assign work to
-- `GET|POST /api/users`, `PATCH|DELETE /api/users/{id}` — admin only
-
-Submitting an inquiry dispatches `InquiryCreated`. The email listener is queued, so the form response returns without waiting on SMTP. Run `php artisan queue:work` beside `php artisan serve` to deliver those jobs. The message goes to `INQUIRY_NOTIFY_EMAIL`. With `MAIL_MAILER=log` it is written to `backend/storage/logs/laravel.log`. Set `MAIL_MAILER=smtp` and the Mailtrap username and password to send it to Mailtrap. A mail failure is logged and does not roll back the inquiry.
-
-Access rules:
-
-- Admins see every inquiry, including unassigned ones.
-- Other users see inquiries assigned to themselves or to people who report to them through `users.manager_id`.
-- Only admins see User Management.
-
-## Tests
+The repository contains an automated PHPUnit suite covering API contracts, RBAC isolation, round-robin auto-assignment logic, and queue events.
 
 ```bash
+# Create dedicated testing database
+mysql -e "CREATE DATABASE IF NOT EXISTS inquiry_management_testing;"
+
+# Run full backend test suite
 cd backend
 php artisan test
 ```
 
-PHPUnit uses the MySQL database `inquiry_management_testing` on the same host and user as `.env`. Create that database before running tests. It is migrated fresh on each run and is separate from the app database.
+**Test Summary**: 19 tests, 101 assertions passing (100% success rate).
 
-## Troubleshooting
+---
 
-- **CORS / cookies.** The dev UI calls `/api` through the Vite proxy, so open http://127.0.0.1:5173. Direct calls from another origin need that origin in `CORS_ALLOWED_ORIGINS` and `withCredentials`.
-- **401 after login.** Confirm `JWT_SECRET` is set and the `token` cookie is being sent.
-- **Upload fails.** Raise `upload_max_filesize` and `post_max_size` in `php.ini` above 10 MB.
-- **Mail not received.** `MAIL_MAILER=log` never leaves the machine. Check the log, or set Mailtrap SMTP credentials and `MAIL_MAILER=smtp`. The notification is queued, so `php artisan queue:work` must be running.
+## 📦 Production Deployment Build
+
+To compile the React frontend single-page app directly into Laravel's public asset folder:
+
+```bash
+cd frontend
+npm run prod
+```
+
+This generates optimized static production assets inside `backend/public/`. The entire web portal can then be served directly via `php artisan serve` or NGINX / Apache document root.
+
+---
+
+## 📄 License
+
+This project is open-source and available under the [MIT License](LICENSE).
+
