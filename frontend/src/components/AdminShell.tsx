@@ -78,7 +78,7 @@ export function AdminShell() {
             color: '#fff',
           }}
         >
-          <Typography sx={{ fontSize: 14, fontWeight: 400, color: '#fff' }}>Savit Interactive</Typography>
+          <Typography sx={{ fontSize: 14, fontWeight: 400, color: '#fff' }}>Inquiry Management</Typography>
           <Typography sx={{ fontSize: 14, color: '#fff', display: { xs: 'none', sm: 'block' } }}>Inquiry Management Portal</Typography>
         </Box>
         <Box sx={{ display: 'flex', flex: 1, minHeight: 0 }}>
@@ -96,7 +96,7 @@ export function AdminShell() {
           }}
         >
           <Box component={NavLink} to="/admin" sx={{ display: 'flex', justifyContent: 'center', px: 1, mb: 3, lineHeight: 0 }}>
-            <Box component="img" src="/savit-logo.svg" alt="Savit" sx={{ height: 68, width: 'auto' }} />
+            <Box component="img" src="/logo.svg" alt="Inquiry Portal" sx={{ height: 68, width: 'auto' }} />
           </Box>
           <SectionLabel>Menu</SectionLabel>
           <List sx={{ px: 0.5 }}>

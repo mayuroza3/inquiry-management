@@ -96,7 +96,7 @@ export function InquirePage() {
     <Box sx={{ minHeight: '100vh', bgcolor: '#fff8f8', display: 'grid', placeItems: 'center', px: 2, py: 4 }}>
       <Stack spacing={2} sx={{ width: '100%', maxWidth: 720 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Box component="img" src="/savit-logo.svg" alt="Savit" sx={{ height: 68, width: 'auto' }} />
+          <Box component="img" src="/logo.svg" alt="Inquiry Portal" sx={{ height: 68, width: 'auto' }} />
         </Box>
         <Typography variant="h4">Contact us</Typography>
         <Typography color="text.secondary">Tell us what you need. A member of the team will follow up.</Typography>

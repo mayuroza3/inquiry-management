@@ -55,7 +55,7 @@ export function LoginPage() {
             justifyContent: 'space-between',
           }}
         >
-          <Typography sx={{ fontWeight: 700, letterSpacing: '0.08em', fontSize: 13 }}>SAVIT INTERACTIVE</Typography>
+          <Typography sx={{ fontWeight: 700, letterSpacing: '0.08em', fontSize: 13 }}>INQUIRY PORTAL</Typography>
           <Box>
             <Typography variant="h3" sx={{ color: '#fff', maxWidth: 380 }}>
               Follow every inquiry through to a decision.
@@ -67,7 +67,7 @@ export function LoginPage() {
           <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>Staff workspace</Typography>
         </Stack>
         <Stack sx={{ p: { xs: 3, md: 6 }, justifyContent: 'center' }}>
-          <Box component="img" src="/savit-logo.svg" alt="Savit" sx={{ height: 44, width: 'auto', mb: 3 }} />
+          <Box component="img" src="/logo.svg" alt="Inquiry Portal" sx={{ height: 44, width: 'auto', mb: 3 }} />
           <Typography variant="h4">Sign in</Typography>
           <Typography color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>Use your portal account to review inquiries.</Typography>
           
